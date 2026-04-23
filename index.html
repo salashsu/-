@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老師薪資計算機</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 14px; color: #1a1a1a; background: #f5f4f0; min-height: 100vh; padding: 24px 16px; }
+  .container { max-width: 720px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 28px 28px 40px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #1a1a1a; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; }
+  .section-title { font-size: 15px; font-weight: 600; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1.5px solid #e8e8e5; color: #1a1a1a; }
+  .row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid #ececea; gap: 12px; }
+  .row:last-child { border-bottom: none; }
+  .row-label { font-size: 13px; color: #666; flex: 1; line-height: 1.6; }
+  .row-label small { font-size: 11px; color: #aaa; display: block; margin-top: 1px; }
+  .row-input { display: flex; align-items: center; gap: 8px; }
+  input[type=number] { width: 96px; height: 36px; text-align: center; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; color: #1a1a1a; background: #fafafa; outline: none; transition: border-color 0.15s; }
+  input[type=number]:focus { border-color: #4a90d9; background: #fff; }
+  .unit { font-size: 12px; color: #999; white-space: nowrap; }
+  .fixed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+  .fixed-item { background: #f8f7f3; border-radius: 8px; padding: 10px 12px; }
+  .fixed-item-label { font-size: 11px; color: #999; margin-bottom: 3px; }
+  .fixed-item-val { font-size: 13px; font-weight: 600; color: #444; }
+  .seniority-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 4px 0 8px; }
+  .seniority-table th { background: #f8f7f3; font-weight: 600; padding: 7px 10px; text-align: center; border: 0.5px solid #e0e0dc; font-size: 12px; }
+  .seniority-table td { padding: 7px 10px; text-align: center; border: 0.5px solid #e0e0dc; }
+  .seniority-table tr:nth-child(even) td { background: #fafaf8; }
+  .calc-btn { margin-top: 20px; width: 100%; height: 46px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: #1a73e8; color: #fff; cursor: pointer; letter-spacing: 0.5px; transition: background 0.15s; }
+  .calc-btn:hover { background: #1557b0; }
+  .result { display: none; margin-top: 28px; }
+  .breakdown { background: #f8f7f3; border-radius: 10px; padding: 14px 16px; margin: 8px 0 16px; }
+  .b-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid #e8e8e5; gap: 8px; }
+  .b-row:last-child { border-bottom: none; font-weight: 700; font-size: 14px; padding-top: 10px; }
+  .b-lbl { color: #888; flex: 1; line-height: 1.5; }
+  .b-lbl small { font-size: 11px; display: block; color: #bbb; }
+  .b-val { white-space: nowrap; }
+  .c-green { color: #2e7d32; font-weight: 600; }
+  .c-blue { color: #1565c0; font-weight: 600; }
+  .c-amber { color: #6d4c00; font-weight: 600; }
+  .c-purple { color: #4527a0; font-weight: 600; }
+  .c-teal { color: #00695c; font-weight: 600; }
+  .c-coral { color: #7b2d00; font-weight: 600; }
+  .c-red { color: #b71c1c; font-weight: 600; }
+  .c-pos { color: #1565c0; font-weight: 600; }
+  .result-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin: 10px 0 16px; }
+  .r-card { border-radius: 10px; padding: 12px 14px; background: #f8f7f3; }
+  .r-label { font-size: 11px; color: #999; margin-bottom: 4px; }
+  .r-val { font-size: 18px; font-weight: 700; }
+  .r-sub { font-size: 11px; color: #aaa; margin-top: 3px; }
+  .total-box { background: #ede9fe; border-radius: 12px; padding: 16px 18px; margin-top: 4px; }
+  .total-main { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .total-label { font-size: 13px; font-weight: 600; color: #4527a0; }
+  .total-amount { font-size: 26px; font-weight: 700; color: #311b92; }
+  .total-detail { font-size: 12px; color: #6a4fc5; margin-bottom: 10px; }
+  .pct-label { font-size: 12px; color: #666; margin-bottom: 3px; }
+  .pct-bar { height: 10px; background: rgba(0,0,0,0.08); border-radius: 5px; overflow: hidden; }
+  .pct-fill { height: 100%; border-radius: 5px; transition: width 0.4s; }
+  .pct-block { border-radius: 10px; padding: 14px 16px; margin: 8px 0 4px; }
+  .pct-block.zone-green { background: #f1f8e9; border-left: 4px solid #2e7d32; }
+  .pct-block.zone-amber { background: #fff8e1; border-left: 4px solid #f9a825; }
+  .pct-block.zone-red { background: #fce4ec; border-left: 4px solid #c62828; }
+  .pct-big { font-size: 36px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+  .pct-zone-tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-bottom: 10px; }
+  .pct-tribar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 10px; gap: 2px; }
+  .pct-tribar-seg { height: 100%; border-radius: 4px; flex-shrink: 0; }
+  .pct-advice { font-size: 12px; line-height: 1.7; }
+  .hol-section { display: none; }
+  .hol-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 8px 0 16px; }
+  .hol-card { background: #f8f7f3; border-radius: 10px; padding: 12px 14px; }
+  .hol-card.active { border-left: 3px solid #00897b; }
+  .hol-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; color: #00695c; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .hol-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+  .hol-row span:first-child { color: #888; }
+  .hol-row span:last-child { color: #333; font-weight: 500; }
+  .hol-divider { border: none; border-top: 0.5px solid #e0e0dc; margin: 6px 0; }
+  .hol-bonus-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+  .hol-bonus-row span:first-child { color: #888; }
+  .hol-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; padding-top: 8px; border-top: 0.5px solid #ddd; margin-top: 4px; }
+  .hol-note { font-size: 11px; color: #aaa; margin-top: 4px; }
+  .tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 10px; }
+  .tag-ok { background: #e8f5e9; color: #2e7d32; }
+  .tag-no { background: #fce4ec; color: #c62828; }
+  .profit-section { margin-top: 4px; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .compare-box { border-radius: 10px; padding: 14px; }
+  .compare-box.old { background: #fff8ee; }
+  .compare-box.new { background: #f1f8e9; }
+  .compare-title { font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+  .compare-title.old { color: #e65100; }
+  .compare-title.new { color: #2e7d32; }
+  .compare-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); }
+  .compare-row span:first-child { color: #888; }
+  .compare-row.old span:last-child { font-weight: 600; color: #e65100; }
+  .compare-row.new span:last-child { font-weight: 600; color: #2e7d32; }
+  .compare-total { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; padding-top: 8px; margin-top: 4px; border-top: 1px solid rgba(0,0,0,0.1); }
+  .compare-total.old { color: #e65100; }
+  .compare-total.new { color: #2e7d32; }
+  .diff-box { background: #f8f7f3; border-radius: 10px; padding: 14px 16px; }
+  .diff-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid #e8e8e5; }
+  .diff-row:last-child { border-bottom: none; font-size: 15px; font-weight: 700; padding-top: 10px; }
+  .diff-lbl { color: #888; }
+  .footer { margin-top: 32px; padding-top: 16px; border-top: 0.5px solid #eee; font-size: 11px; color: #bbb; text-align: center; }
+  @media (max-width: 520px) {
+    .container { padding: 20px 16px 32px; }
+    .hol-grid { grid-template-columns: 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .fixed-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>老師薪資計算機</h1>
+  <p class="subtitle">新制薪資結構｜底薪33% ＋ 績效獎金 ＋ 累進年資 ＋ 餐費津貼</p>
+
+  <div class="section-title">基本資料</div>
+  <div class="row">
+    <span class="row-label">班級人數</span>
+    <div class="row-input"><input type="number" id="i-count" min="1" max="40" value="18"><span class="unit">人</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">年資<small>無條件捨去，例：2年8個月 → 輸入 2</small></span>
+    <div class="row-input"><input type="number" id="i-sen" min="0" max="30" value="3"><span class="unit">年</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">該老師舊制薪資</span>
+    <div class="row-input"><input type="number" id="i-old-sal" value="38000"><span class="unit">元／月</span></div>
+  </div>
+
+  <div class="section-title">固定參數</div>
+  <div class="fixed-grid">
+    <div class="fixed-item"><div class="fixed-item-label">舊制學費（全年）</div><div class="fixed-item-val">$77,000／年</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">舊制學費（假期）</div><div class="fixed-item-val">$58,000／年</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">新制學費（全年）</div><div class="fixed-item-val">$84,500／年</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">新制學費（假期）</div><div class="fixed-item-val">$64,400／年</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">底薪比例</div><div class="fixed-item-val">15人學收 × 33%</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">績效獎金</div><div class="fixed-item-val">16–20人 $600／21人起 $1,200</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">餐費津貼</div><div class="fixed-item-val" style="color:#7b2d00;">$2,000／月</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">寒暑假達標獎金</div><div class="fixed-item-val" style="color:#00695c;">達75% → $1,000</div></div>
+  </div>
+
+  <div class="section-title">年資累進獎金說明</div>
+  <table class="seniority-table">
+    <thead><tr><th>年資區間</th><th>每年金額</th><th>計算方式</th></tr></thead>
+    <tbody>
+      <tr><td>第 1–2 年</td><td>$500／年</td><td>年資 × $500（最多2年）</td></tr>
+      <tr><td>第 3–5 年</td><td>$800／年</td><td>超過2年的部分 × $800（最多3年）</td></tr>
+      <tr><td>第 6 年起</td><td>$1,200／年</td><td>超過5年的部分 × $1,200</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">寒暑假出席（選填）</div>
+  <div class="row">
+    <span class="row-label">寒假實際出席人數<small>達75%：達標獎金 $1,000；超過75%每人再加 $1,000（單獨發放）</small></span>
+    <div class="row-input"><input type="number" id="i-winter" min="0" max="40" value="0"><span class="unit">人</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">七月實際出席人數<small>達75%：達標獎金 $1,000；超過75%每人再加 $1,500（單獨發放）</small></span>
+    <div class="row-input"><input type="number" id="i-july" min="0" max="40" value="0"><span class="unit">人</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">八月實際出席人數<small>達75%：達標獎金 $1,000；超過75%每人再加 $1,500（單獨發放）</small></span>
+    <div class="row-input"><input type="number" id="i-aug" min="0" max="40" value="0"><span class="unit">人</span></div>
+  </div>
+
+  <button class="calc-btn" onclick="calc()">計算薪資</button>
+
+  <div class="result" id="result">
+
+    <div class="section-title">平時月薪明細</div>
+    <div class="breakdown" id="bd-monthly"></div>
+
+    <div class="hol-section" id="hol-section">
+      <div class="section-title">寒暑假出勤獎金（各期單獨發放）</div>
+      <div class="hol-grid" id="hol-grid"></div>
+    </div>
+
+    <div class="section-title">薪資總覽</div>
+    <div class="result-cards" id="result-cards"></div>
+    <div class="total-box" id="total-box"></div>
+
+    <div class="section-title">薪資佔比健康度</div>
+    <div id="pct-block-container"></div>
+
+    <div class="section-title">該班利潤與舊制比較</div>
+    <div class="profit-section" id="profit-section"></div>
+
+  </div>
+
+  <div class="footer">安親班薪資計算機 · 新制方案</div>
+</div>
+
+<script>
+const NEW_FULL=84500, NEW_VAC=64400;
+const OLD_FULL=77000, OLD_VAC=58000;
+const VAC=0.30;
+const BASE_RATIO=0.33, OVER16=600, OVER21=1200, MEAL=2000;
+const HOL_THRESH=0.75;
+const HOL_REACH=1000;       // 達標獎金（固定）
+const HOL_WINTER_OVER=1000; // 寒假超額每人
+const HOL_SUMMER_OVER=1500; // 七八月超額每人
+
+const newPP=(NEW_FULL/12)*(1-VAC)+(NEW_VAC/12)*VAC;
+const oldPP=(OLD_FULL/12)*(1-VAC)+(OLD_VAC/12)*VAC;
+const fixedBase=Math.round(newPP*15*BASE_RATIO);
+
+// 累進年資計算
+function calcSeniority(sen){
+  const y=Math.floor(sen);
+  const t1=Math.min(y,2)*500;
+  const t2=Math.min(Math.max(y-2,0),3)*800;
+  const t3=Math.max(y-5,0)*1200;
+  const total=t1+t2+t3;
+  const parts=[];
+  if(Math.min(y,2)>0) parts.push(`前${Math.min(y,2)}年×$500=${t1.toLocaleString()}`);
+  if(Math.min(Math.max(y-2,0),3)>0) parts.push(`第3–${Math.min(y,5)}年×$800=${t2.toLocaleString()}`);
+  if(Math.max(y-5,0)>0) parts.push(`第6年起×$1,200=${t3.toLocaleString()}`);
+  return {total, detail: parts.join('＋')};
+}
+
+function calcOver(c){
+  const t1=Math.max(0,Math.min(c,20)-15);
+  const t2=Math.max(0,c-20);
+  return {t1,t2,bonus:t1*OVER16+t2*OVER21};
+}
+
+// 寒暑假：達標獎金 + 超額獎金分開
+function calcHol(c,a,overUnit){
+  const thresh=c*HOL_THRESH;
+  const reached=a>=thresh;
+  const growth=Math.floor(a-thresh);
+  const reachBonus=reached?HOL_REACH:0;
+  const overBonus=growth>0?growth*overUnit:0;
+  return {reached, growth:Math.max(growth,0), reachBonus, overBonus, total:reachBonus+overBonus, thresh};
+}
+
+function fmt(n){ return '$'+Math.round(n).toLocaleString(); }
+function diffFmt(d){
+  const r=Math.round(d);
+  if(r>0) return `<span class="c-pos">+${fmt(r)}</span>`;
+  if(r<0) return `<span class="c-red">-${fmt(Math.abs(r))}</span>`;
+  return '<span>$0</span>';
+}
+
+// 學費差額 20100／10週
+const DIFF_PER_WEEK = (NEW_FULL - NEW_VAC) / 10; // 2010／週
+const HOL_EXTRA_WINTER = DIFF_PER_WEEK * 2;  // 寒假2週 = 4020／人
+const HOL_EXTRA_SUMMER = DIFF_PER_WEEK * 4;  // 七月或八月4週 = 8040／人
+
+const OLD_DIFF_PER_WEEK = (OLD_FULL - OLD_VAC) / 10; // 舊制差額
+const OLD_HOL_EXTRA_WINTER = OLD_DIFF_PER_WEEK * 2;
+const OLD_HOL_EXTRA_SUMMER = OLD_DIFF_PER_WEEK * 4;
+
+// 新制真實學收：全班 × 平均月費 ＋ 超出預期人數 × 該期差額
+// 預期出席 = 全班 × 70%（四捨五入）
+function realHolRev(count, attend, extraPerPerson){
+  const expected = Math.round(count * (1 - VAC));
+  const extra = Math.max(0, attend - expected);
+  return newPP * count + extra * extraPerPerson;
+}
+// 舊制同邏輯
+function realHolRevOld(count, attend, extraPerPerson){
+  const expected = Math.round(count * (1 - VAC));
+  const extra = Math.max(0, attend - expected);
+  return oldPP * count + extra * extraPerPerson;
+}
+
+function pctBlock(salPct){
+  let pctColor, pctLabel, pctZone, pctTagBg, pctTagColor, pctAdvice;
+  if(salPct<=35){
+    pctColor='#2e7d32'; pctLabel='建議維持'; pctZone='zone-green';
+    pctTagBg='#e8f5e9'; pctTagColor='#1b5e20';
+    pctAdvice='人力成本在健康範圍內，薪資結構沒有壓到獲利。建議持續維持現有配置，並透過招生提升班級效益。';
+  } else if(salPct<=40){
+    pctColor='#f9a825'; pctLabel='建議觀察'; pctZone='zone-amber';
+    pctTagBg='#fff8e1'; pctTagColor='#e65100';
+    pctAdvice='開始進入需要注意的區間。建議確認：這班人數是否偏少？老師負擔是否過高但產值未拉起？是否有品牌價值但獲利偏弱？是否有特殊情況值得保留？';
+  } else {
+    pctColor='#c62828'; pctLabel='建議調整'; pctZone='zone-red';
+    pctTagBg='#fce4ec'; pctTagColor='#b71c1c';
+    pctAdvice='已達需要經營介入的區間。建議檢查：班級人數是否不足？老師配置是否過重？是否行政與教學混在一起導致薪資被灌高？是否需要併班或改制？';
+  }
+  const triW1=Math.min(salPct,35)/50*100;
+  const triW2=Math.min(Math.max(salPct-35,0),5)/50*100;
+  const triW3=Math.min(Math.max(salPct-40,0),20)/50*100;
+  const adviceColor=pctColor==='#2e7d32'?'#2e7d32':pctColor==='#f9a825'?'#795400':'#7b1c1c';
+  return `<div class="pct-block ${pctZone}">
+    <div class="pct-big" style="color:${pctColor};">${salPct.toFixed(1)}%</div>
+    <div><span class="pct-zone-tag" style="background:${pctTagBg};color:${pctTagColor};">${pctLabel}</span></div>
+    <div class="pct-tribar">
+      <div class="pct-tribar-seg" style="width:${triW1.toFixed(1)}%;background:#2e7d32;"></div>
+      <div class="pct-tribar-seg" style="width:${triW2.toFixed(1)}%;background:#f9a825;"></div>
+      <div class="pct-tribar-seg" style="width:${triW3.toFixed(1)}%;background:#c62828;"></div>
+      <div style="flex:1;background:rgba(0,0,0,0.06);border-radius:4px;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#aaa;margin-bottom:8px;">
+      <span>0%</span><span style="color:#2e7d32;">35%</span><span style="color:#f9a825;">40%</span><span>60%</span>
+    </div>
+    <div class="pct-advice" style="color:${adviceColor};">${pctAdvice}</div>
+  </div>`;
+}
+
+function calc(){
+  const count=parseInt(document.getElementById('i-count').value)||1;
+  const sen=Math.floor(parseFloat(document.getElementById('i-sen').value)||0);
+  const oldSal=parseFloat(document.getElementById('i-old-sal').value)||0;
+  const winter=parseInt(document.getElementById('i-winter').value)||0;
+  const july=parseInt(document.getElementById('i-july').value)||0;
+  const aug=parseInt(document.getElementById('i-aug').value)||0;
+
+  // ── 平時（一般月份）──
+  const newRev=newPP*count;
+  const ov=calcOver(count);
+  const senData=calcSeniority(sen);
+  const monthlyTotal=fixedBase+ov.bonus+senData.total+MEAL;
+  const newProfit=newRev-monthlyTotal;
+  const oldRev=oldPP*count;
+  const oldProfit=oldRev-oldSal;
+  const salPct=monthlyTotal/newRev*100;
+
+  // ── 寒暑假真實學收（新公式：全班×平均月費 ＋ 超出預期人數×差額）──
+  const expectedAttend = Math.round(count * (1 - VAC)); // 預期出席人數（全年生）
+  const wRealRev  = winter>0 ? realHolRev(count, winter, HOL_EXTRA_WINTER) : 0;
+  const jRealRev  = july>0   ? realHolRev(count, july,   HOL_EXTRA_SUMMER) : 0;
+  const aRealRev  = aug>0    ? realHolRev(count, aug,     HOL_EXTRA_SUMMER) : 0;
+  const wOldRev   = winter>0 ? realHolRevOld(count, winter, OLD_HOL_EXTRA_WINTER) : 0;
+  const jOldRev   = july>0   ? realHolRevOld(count, july,   OLD_HOL_EXTRA_SUMMER) : 0;
+  const aOldRev   = aug>0    ? realHolRevOld(count, aug,     OLD_HOL_EXTRA_SUMMER) : 0;
+
+  // 寒暑假薪資佔比（用真實學收）
+  const wSalPct = wRealRev>0 ? monthlyTotal/wRealRev*100 : 0;
+  const jSalPct = jRealRev>0 ? monthlyTotal/jRealRev*100 : 0;
+  const aSalPct = aRealRev>0 ? monthlyTotal/aRealRev*100 : 0;
+
+  const wRes=calcHol(count,winter,HOL_WINTER_OVER);
+  const jRes=calcHol(count,july,HOL_SUMMER_OVER);
+  const aRes=calcHol(count,aug,HOL_SUMMER_OVER);
+  const hasHol=winter>0||july>0||aug>0;
+
+  let overDetail='無（15人以下）';
+  const parts=[];
+  if(ov.t1>0) parts.push(`第16–${15+ov.t1}人：${ov.t1}人×$600`);
+  if(ov.t2>0) parts.push(`第21–${20+ov.t2}人：${ov.t2}人×$1,200`);
+  if(parts.length) overDetail=parts.join(' ＋ ');
+
+  // ── 平時月薪明細 ──
+  document.getElementById('bd-monthly').innerHTML=`
+    <div class="b-row"><span class="b-lbl">月學收（${count}人，一般月份）</span><span class="b-val">${fmt(newRev)}</span></div>
+    <div class="b-row"><span class="b-lbl">固定底薪（15人學收×33%）</span><span class="b-val c-green">${fmt(fixedBase)}</span></div>
+    <div class="b-row"><span class="b-lbl">績效獎金<small>${overDetail}</small></span><span class="b-val c-blue">${ov.bonus>0?fmt(ov.bonus):'—'}</span></div>
+    <div class="b-row"><span class="b-lbl">年資獎金（${sen}年累進）<small>${senData.detail||'—'}</small></span><span class="b-val c-amber">${senData.total>0?fmt(senData.total):'—'}</span></div>
+    <div class="b-row"><span class="b-lbl">餐費津貼</span><span class="b-val c-coral">${fmt(MEAL)}</span></div>
+    <div class="b-row"><span class="b-lbl">薪資佔學收（一般月份）</span><span class="b-val" style="color:#666;font-weight:700;">${salPct.toFixed(1)}%</span></div>
+    <div class="b-row"><span class="b-lbl">平時月薪合計</span><span class="b-val c-purple">${fmt(monthlyTotal)}</span></div>
+  `;
+
+  // ── 寒暑假獎金卡片（含真實學收與薪資佔比）──
+  const holSection=document.getElementById('hol-section');
+  holSection.style.display=hasHol?'block':'none';
+  if(hasHol){
+    function holCard(label, attend, res, overUnit, realRev, salPctHol, extraPerPerson){
+      if(attend===0) return '';
+      const reached=res.reached;
+      const extra=Math.max(0, attend - expectedAttend);
+      const baseRev=newPP*count;
+      return `<div class="hol-card${reached?' active':''}">
+        <div class="hol-title">${label}<span class="tag ${reached?'tag-ok':'tag-no'}">${reached?'達標':'未達'}</span></div>
+        <div class="hol-row"><span>預期出席</span><span>${expectedAttend}人（全班×70%）</span></div>
+        <div class="hol-row"><span>實際出席</span><span>${attend}人</span></div>
+        <div class="hol-row"><span>超出預期</span><span>${extra>0?'+'+extra+'人':'未超出'}</span></div>
+        <hr class="hol-divider">
+        <div class="hol-bonus-row"><span style="color:#888;">基礎月學收</span><span>${fmt(baseRev)}</span></div>
+        <div class="hol-bonus-row"><span style="color:#888;">額外學收</span><span style="color:#2e7d32;font-weight:600;">${extra>0?'+'+extra+'人×'+fmt(extraPerPerson)+' = '+fmt(extra*extraPerPerson):'—'}</span></div>
+        <div class="hol-bonus-row" style="font-weight:600;"><span style="color:#444;">真實月學收</span><span>${fmt(realRev)}</span></div>
+        <hr class="hol-divider">
+        <div class="hol-bonus-row"><span style="color:#888;">達標獎金</span><span class="${reached?'c-teal':'c-red'}">${reached?fmt(HOL_REACH):'$0'}</span></div>
+        <div class="hol-bonus-row"><span style="color:#888;">超額人數（門檻${Math.ceil(count*HOL_THRESH)}人）</span><span>${res.growth>0?'+'+res.growth+'人':'—'}</span></div>
+        <div class="hol-bonus-row"><span style="color:#888;">超額獎金（每人$${overUnit.toLocaleString()}）</span><span class="${res.overBonus>0?'c-teal':''}">${res.overBonus>0?fmt(res.overBonus):'—'}</span></div>
+        <div class="hol-total"><span>${label}獎金合計</span><span class="${reached?'c-teal':'c-red'}">${fmt(res.total)}</span></div>
+        <div style="margin-top:6px;padding-top:6px;border-top:0.5px solid #e0e0dc;font-size:11px;color:#888;">薪資佔此期真實學收：<span style="font-weight:700;color:#444;">${salPctHol.toFixed(1)}%</span></div>
+      </div>`;
+    }
+    document.getElementById('hol-grid').innerHTML=
+      holCard('寒假',winter,wRes,HOL_WINTER_OVER,wRealRev,wSalPct,HOL_EXTRA_WINTER)+
+      holCard('七月',july,jRes,HOL_SUMMER_OVER,jRealRev,jSalPct,HOL_EXTRA_SUMMER)+
+      holCard('八月',aug,aRes,HOL_SUMMER_OVER,aRealRev,aSalPct,HOL_EXTRA_SUMMER);
+  }
+
+  // ── 薪資總覽卡片 ──
+  let cards=`<div class="r-card"><div class="r-label">平時月薪合計</div><div class="r-val c-purple">${fmt(monthlyTotal)}</div><div class="r-sub">底薪＋績效＋年資＋餐費</div></div>`;
+  if(wRes.total>0) cards+=`<div class="r-card" style="background:#e0f2f1;"><div class="r-label">寒假獎金（單獨發放）</div><div class="r-val c-teal">${fmt(wRes.total)}</div><div class="r-sub">達標$1,000 ＋ 超額${fmt(wRes.overBonus)}</div></div>`;
+  if(jRes.total>0) cards+=`<div class="r-card" style="background:#e0f2f1;"><div class="r-label">七月獎金（單獨發放）</div><div class="r-val c-teal">${fmt(jRes.total)}</div><div class="r-sub">達標$1,000 ＋ 超額${fmt(jRes.overBonus)}</div></div>`;
+  if(aRes.total>0) cards+=`<div class="r-card" style="background:#e0f2f1;"><div class="r-label">八月獎金（單獨發放）</div><div class="r-val c-teal">${fmt(aRes.total)}</div><div class="r-sub">達標$1,000 ＋ 超額${fmt(aRes.overBonus)}</div></div>`;
+  document.getElementById('result-cards').innerHTML=cards;
+
+  // ── total-box（平時）──
+  const holNote=hasHol?`<div style="font-size:12px;color:#00695c;margin-top:10px;padding-top:8px;border-top:1px solid rgba(69,39,160,0.15);">寒暑假獎金（各期單獨發放）：寒假 ${fmt(wRes.total)} ／ 七月 ${fmt(jRes.total)} ／ 八月 ${fmt(aRes.total)}</div>`:'';
+  document.getElementById('total-box').innerHTML=`
+    <div class="total-main"><span class="total-label">平時月薪合計</span><span class="total-amount">${fmt(monthlyTotal)}</span></div>
+    <div class="total-detail">底薪 ${fmt(fixedBase)} ＋ 績效 ${fmt(ov.bonus)} ＋ 年資 ${fmt(senData.total)} ＋ 餐費 ${fmt(MEAL)}</div>
+    ${holNote}
+  `;
+
+  // ── 薪資佔比健康度（依實際情況動態顯示）──
+  let pctHtml = '';
+  if(!hasHol){
+    // 沒有寒暑假資料：顯示一般月份
+    pctHtml = `<div style="font-size:12px;color:#888;margin-bottom:6px;">一般月份（未填寒暑假出席）</div>` + pctBlock(salPct);
+  } else {
+    // 有寒暑假資料：顯示各期真實健康度，隱藏一般月份備注
+    pctHtml = `<div style="font-size:12px;color:#888;margin-bottom:10px;">依各期真實學收計算健康度</div>`;
+    // 一般月份
+    pctHtml += `<div style="font-size:13px;font-weight:600;color:#444;margin-bottom:6px;">一般月份</div>`;
+    pctHtml += pctBlock(salPct);
+    // 寒假
+    if(winter>0){
+      pctHtml += `<div style="font-size:13px;font-weight:600;color:#444;margin:14px 0 6px;">寒假　<span style="font-size:11px;font-weight:400;color:#aaa;">出席${winter}人 ／ 真實學收 ${fmt(wRealRev)}</span></div>`;
+      pctHtml += pctBlock(wSalPct);
+    }
+    // 七月
+    if(july>0){
+      pctHtml += `<div style="font-size:13px;font-weight:600;color:#444;margin:14px 0 6px;">七月　<span style="font-size:11px;font-weight:400;color:#aaa;">出席${july}人 ／ 真實學收 ${fmt(jRealRev)}</span></div>`;
+      pctHtml += pctBlock(jSalPct);
+    }
+    // 八月
+    if(aug>0){
+      pctHtml += `<div style="font-size:13px;font-weight:600;color:#444;margin:14px 0 6px;">八月　<span style="font-size:11px;font-weight:400;color:#aaa;">出席${aug}人 ／ 真實學收 ${fmt(aRealRev)}</span></div>`;
+      pctHtml += pctBlock(aSalPct);
+    }
+  }
+  document.getElementById('pct-block-container').innerHTML = pctHtml;
+
+  // ── 利潤比較：分一般月份 + 各假期 ──
+  function profitCompareBlock(label, newRevAmt, oldRevAmt, note){
+    const newPr=newRevAmt-monthlyTotal;
+    const oldPr=oldRevAmt-oldSal;
+    const revD=newRevAmt-oldRevAmt;
+    const salD=monthlyTotal-oldSal;
+    const prD=newPr-oldPr;
+    const prColor=prD>=0?'#2e7d32':'#b71c1c';
+    return `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;color:#444;margin-bottom:8px;">${label}${note?`<span style="font-size:11px;font-weight:400;color:#aaa;margin-left:6px;">${note}</span>`:''}</div>
+        <div class="compare-grid">
+          <div class="compare-box old">
+            <div class="compare-title old">舊制</div>
+            <div class="compare-row old"><span>月學收</span><span>${fmt(oldRevAmt)}</span></div>
+            <div class="compare-row old"><span>老師薪資</span><span>${fmt(oldSal)}</span></div>
+            <div class="compare-total old"><span>補習班利潤</span><span>${fmt(oldPr)}</span></div>
+          </div>
+          <div class="compare-box new">
+            <div class="compare-title new">新制</div>
+            <div class="compare-row new"><span>月學收</span><span>${fmt(newRevAmt)}</span></div>
+            <div class="compare-row new"><span>老師薪資</span><span>${fmt(monthlyTotal)}</span></div>
+            <div class="compare-total new"><span>補習班利潤</span><span>${fmt(newPr)}</span></div>
+          </div>
+        </div>
+        <div class="diff-box">
+          <div class="diff-row"><span class="diff-lbl">月學收增減</span>${diffFmt(revD)}</div>
+          <div class="diff-row"><span class="diff-lbl">老師薪資增減</span>${diffFmt(salD)}</div>
+          <div class="diff-row"><span class="diff-lbl">補習班利潤增減</span><span style="color:${prColor};font-weight:700;">${prD>=0?'+':''}${fmt(prD)}</span></div>
+        </div>
+      </div>`;
+  }
+
+  let profitHtml = profitCompareBlock('一般月份', newRev, oldRev);
+  if(winter>0) profitHtml += profitCompareBlock('寒假', wRealRev, wOldRev, `出席${winter}人，真實學收`);
+  if(july>0)   profitHtml += profitCompareBlock('七月', jRealRev, jOldRev, `出席${july}人，真實學收`);
+  if(aug>0)    profitHtml += profitCompareBlock('八月', aRealRev, aOldRev, `出席${aug}人，真實學收`);
+  document.getElementById('profit-section').innerHTML=profitHtml;
+
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
