@@ -113,9 +113,30 @@
 <body>
 <div class="container">
   <h1>老師薪資計算機</h1>
-  <p class="subtitle">新制薪資結構｜底薪33% ＋ 績效獎金 ＋ 累進年資 ＋ 餐費津貼</p>
+  <p class="subtitle">新制薪資結構｜底薪分級 ＋ 績效獎金 ＋ 累進年資 ＋ 餐費津貼</p>
 
   <div class="section-title">基本資料</div>
+  <div class="row">
+    <span class="row-label">底薪級距<small>由主任核定，請依通知填寫</small></span>
+    <div class="row-input">
+      <select id="i-base-ratio" onchange="updateBaseDisplay()" style="width:110px;height:36px;border:1px solid #ddd;border-radius:8px;font-size:14px;background:#fafafa;padding:0 8px;">
+        <option value="0.20">20%</option>
+        <option value="0.21">21%</option>
+        <option value="0.22">22%</option>
+        <option value="0.23">23%</option>
+        <option value="0.24">24%</option>
+        <option value="0.25">25%</option>
+        <option value="0.26">26%</option>
+        <option value="0.27">27%</option>
+        <option value="0.28">28%</option>
+        <option value="0.29">29%</option>
+        <option value="0.30">30%</option>
+        <option value="0.31">31%</option>
+        <option value="0.32">32%</option>
+        <option value="0.33" selected>33%</option>
+      </select>
+    </div>
+  </div>
   <div class="row">
     <span class="row-label">班級人數</span>
     <div class="row-input"><input type="number" id="i-count" min="1" max="40" value="18"><span class="unit">人</span></div>
@@ -129,14 +150,42 @@
     <div class="row-input"><input type="number" id="i-old-sal" value="38000"><span class="unit">元／月</span></div>
   </div>
 
+  <div class="section-title">班級分攤成本<span style="font-size:12px;font-weight:400;color:#aaa;margin-left:8px;">固定支出依科次比例分攤至本班</span></div>
+  <div class="row">
+    <span class="row-label">房租</span>
+    <div class="row-input"><input type="number" id="i-rent" min="0" value="0"><span class="unit">元／月</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">主任薪資</span>
+    <div class="row-input"><input type="number" id="i-director" min="0" value="0"><span class="unit">元／月</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">行政薪資</span>
+    <div class="row-input"><input type="number" id="i-admin" min="0" value="0"><span class="unit">元／月</span></div>
+  </div>
+  <div class="row">
+    <span class="row-label">其他支出</span>
+    <div class="row-input"><input type="number" id="i-other" min="0" value="0"><span class="unit">元／月</span></div>
+  </div>
+  <div style="background:#f8f7f3;border-radius:8px;padding:10px 14px;margin:8px 0 4px;font-size:12px;color:#666;line-height:1.9;">
+    科次設定（計算分攤權重）<br>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">
+      <div><div style="font-size:11px;color:#aaa;margin-bottom:3px;">全科科次（×2權重）</div><input type="number" id="i-cls-all" min="0" value="0" style="width:100%;height:34px;text-align:center;border:1px solid #ddd;border-radius:6px;font-size:14px;background:#fff;"></div>
+      <div><div style="font-size:11px;color:#aaa;margin-bottom:3px;">英文科次</div><input type="number" id="i-cls-eng" min="0" value="0" style="width:100%;height:34px;text-align:center;border:1px solid #ddd;border-radius:6px;font-size:14px;background:#fff;"></div>
+      <div><div style="font-size:11px;color:#aaa;margin-bottom:3px;">數學科次</div><input type="number" id="i-cls-math" min="0" value="0" style="width:100%;height:34px;text-align:center;border:1px solid #ddd;border-radius:6px;font-size:14px;background:#fff;"></div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:#aaa;">分攤公式：（固定支出合計）÷（全科×2＋英文＋數學）×（此班人數×2）</div>
+    <div id="alloc-preview" style="margin-top:6px;font-size:13px;font-weight:600;color:#444;">本班分攤成本：—</div>
+  </div>
+
   <div class="section-title">固定參數</div>
   <div class="fixed-grid">
     <div class="fixed-item"><div class="fixed-item-label">舊制學費（全年）</div><div class="fixed-item-val">$77,000／年</div></div>
     <div class="fixed-item"><div class="fixed-item-label">舊制學費（假期）</div><div class="fixed-item-val">$58,000／年</div></div>
     <div class="fixed-item"><div class="fixed-item-label">新制學費（全年）</div><div class="fixed-item-val">$84,500／年</div></div>
     <div class="fixed-item"><div class="fixed-item-label">新制學費（假期）</div><div class="fixed-item-val">$64,400／年</div></div>
-    <div class="fixed-item"><div class="fixed-item-label">底薪比例</div><div class="fixed-item-val">15人學收 × 33%</div></div>
-    <div class="fixed-item"><div class="fixed-item-label">績效獎金</div><div class="fixed-item-val">16–20人 $600／21人起 $1,200</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">底薪比例</div><div class="fixed-item-val" id="display-base-ratio">18人學收 × 33%</div></div>
+    <div class="fixed-item"><div class="fixed-item-label">績效獎金</div><div class="fixed-item-val">第18人滿班$1,000<br>第19–22人各$800<br>第23人起各$1,200</div></div>
     <div class="fixed-item"><div class="fixed-item-label">餐費津貼</div><div class="fixed-item-val" style="color:#7b2d00;">$2,000／月</div></div>
     <div class="fixed-item"><div class="fixed-item-label">寒暑假達標獎金</div><div class="fixed-item-val" style="color:#00695c;">達75% → $1,000</div></div>
   </div>
@@ -196,17 +245,132 @@
 const NEW_FULL=84500, NEW_VAC=64400;
 const OLD_FULL=77000, OLD_VAC=58000;
 const VAC=0.30;
-const BASE_RATIO=0.33, OVER16=600, OVER21=1200, MEAL=2000;
+const OVER16=600, OVER21=1200, MEAL=2000;
 const HOL_THRESH=0.75;
-const HOL_REACH=1000;       // 達標獎金（固定）
-const HOL_WINTER_OVER=1000; // 寒假超額每人
-const HOL_SUMMER_OVER=1500; // 七八月超額每人
+const HOL_REACH=1000;
+const HOL_WINTER_OVER=1000;
+const HOL_SUMMER_OVER=1500;
 
 const newPP=(NEW_FULL/12)*(1-VAC)+(NEW_VAC/12)*VAC;
 const oldPP=(OLD_FULL/12)*(1-VAC)+(OLD_VAC/12)*VAC;
-const fixedBase=Math.round(newPP*15*BASE_RATIO);
 
-// 累進年資計算
+function getBaseRatio(){ return parseFloat(document.getElementById('i-base-ratio').value)||0.33; }
+function getFixedBase(ratio){ return Math.round(newPP*18*ratio); }
+
+function updateBaseDisplay(){
+  const ratio=getBaseRatio();
+  document.getElementById('display-base-ratio').textContent=`18人學收 × ${Math.round(ratio*100)}%`;
+}
+// 初始化改由 DOMContentLoaded 統一處理
+
+// ── 2026 勞保健保勞退投保級距表 ──
+// [投保薪資上限, 公司負擔合計（勞保+健保+災保+勞退）, 員工負擔合計]
+const INS_TABLE = [
+  [11100, 3128, 735],
+  [12540, 3339, 771],
+  [13500, 3482, 796],
+  [15840, 3826, 854],
+  [16500, 3924, 871],
+  [17280, 4039, 890],
+  [17880, 4127, 905],
+  [19047, 4299, 934],
+  [20008, 4441, 958],
+  [21009, 4589, 983],
+  [22000, 4735, 1008],
+  [23100, 4898, 1035],
+  [24000, 5030, 1058],
+  [25250, 5214, 1090],
+  [26400, 5384, 1118],
+  [27600, 5561, 1148],
+  [28590, 5706, 1173],
+  [29500, 5842, 1196],
+  [30300, 5999, 1228],
+  [31800, 6297, 1288],
+  [33300, 6593, 1349],
+  [34800, 6890, 1410],
+  [36300, 7187, 1471],
+  [38200, 7563, 1547],
+  [40100, 7939, 1624],
+  [42000, 8315, 1701],
+  [43900, 8691, 1779],
+  [45800, 9068, 1855],
+  [48200, 9333, 1893],
+  [50600, 9599, 1930],
+  [53000, 9864, 1967],
+  [55400, 10129, 2004],
+  [57800, 10394, 2041],
+  [60800, 10726, 2088],
+  [63800, 11057, 2135],
+  [66800, 11389, 2181],
+  [69800, 11721, 2228],
+  [72800, 12052, 2274],
+  [76500, 12453, 2332],
+  [80200, 12854, 2389],
+  [83900, 13255, 2446],
+  [87600, 13656, 2504],
+];
+
+// 依薪資查對應投保級距（往上找第一個 >= 薪資的級距）
+function lookupIns(salary){
+  for(let i=0; i<INS_TABLE.length; i++){
+    if(salary <= INS_TABLE[i][0]){
+      return { bracket: INS_TABLE[i][0], company: INS_TABLE[i][1], employee: INS_TABLE[i][2] };
+    }
+  }
+  // 超過最高級距，用最高級距
+  const last = INS_TABLE[INS_TABLE.length-1];
+  return { bracket: last[0], company: last[1], employee: last[2] };
+}
+
+
+function calcAllocCost(){
+  const rent    = parseFloat(document.getElementById('i-rent').value)||0;
+  const dir     = parseFloat(document.getElementById('i-director').value)||0;
+  const admin   = parseFloat(document.getElementById('i-admin').value)||0;
+  const other   = parseFloat(document.getElementById('i-other').value)||0;
+  const clsAll  = parseFloat(document.getElementById('i-cls-all').value)||0;
+  const clsEng  = parseFloat(document.getElementById('i-cls-eng').value)||0;
+  const clsMath = parseFloat(document.getElementById('i-cls-math').value)||0;
+  const count   = parseFloat(document.getElementById('i-count').value)||0;
+  const totalFixed = rent + dir + admin + other;
+  const totalWeight = clsAll*2 + clsEng + clsMath;
+  const alloc = totalWeight > 0 ? Math.round(totalFixed / totalWeight * count * 2) : 0;
+  return { totalFixed, totalWeight, alloc, count };
+}
+
+function updateAllocPreview(){
+  const r = calcAllocCost();
+  const el = document.getElementById('alloc-preview');
+  if(!el) return;
+  if(r.totalWeight === 0){
+    el.textContent = '本班分攤成本：— （請輸入科次）';
+  } else if(r.totalFixed === 0){
+    el.textContent = '本班分攤成本：$0（固定支出尚未填寫）';
+  } else {
+    el.textContent = `本班分攤成本：$${r.alloc.toLocaleString()}　（固定支出 $${r.totalFixed.toLocaleString()} ÷ 總權重 ${r.totalWeight} × 班級人數 ${r.count}×2）`;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+  ['i-rent','i-director','i-admin','i-other','i-cls-all','i-cls-eng','i-cls-math','i-count'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', updateAllocPreview);
+  });
+  updateBaseDisplay();
+  updateAllocPreview();
+});
+
+function calcOver(c){
+  // 第18人：滿班獎金 $1,000
+  // 第19–22人：各 $800（t1 最多4人）
+  // 第23人起：各 $1,200
+  const fullBonus = c >= 18 ? 1000 : 0;
+  const t1 = Math.max(0, Math.min(c, 22) - 18);
+  const t2 = Math.max(0, c - 22);
+  const perfBonus = t1 * 800 + t2 * 1200;
+  return { fullBonus, t1, t2, perfBonus, bonus: fullBonus + perfBonus };
+}
+
 function calcSeniority(sen){
   const y=Math.floor(sen);
   const t1=Math.min(y,2)*500;
@@ -218,12 +382,6 @@ function calcSeniority(sen){
   if(Math.min(Math.max(y-2,0),3)>0) parts.push(`第3–${Math.min(y,5)}年×$800=${t2.toLocaleString()}`);
   if(Math.max(y-5,0)>0) parts.push(`第6年起×$1,200=${t3.toLocaleString()}`);
   return {total, detail: parts.join('＋')};
-}
-
-function calcOver(c){
-  const t1=Math.max(0,Math.min(c,20)-15);
-  const t2=Math.max(0,c-20);
-  return {t1,t2,bonus:t1*OVER16+t2*OVER21};
 }
 
 // 寒暑假：達標獎金 + 超額獎金分開
@@ -303,22 +461,31 @@ function pctBlock(salPct){
 }
 
 function calc(){
+  const ratio=getBaseRatio();
+  const fixedBase=getFixedBase(ratio);
   const count=parseInt(document.getElementById('i-count').value)||1;
   const sen=Math.floor(parseFloat(document.getElementById('i-sen').value)||0);
   const oldSal=parseFloat(document.getElementById('i-old-sal').value)||0;
+  const sunkCost = calcAllocCost().alloc; // 班級分攤成本（固定支出依科次比例分攤）
   const winter=parseInt(document.getElementById('i-winter').value)||0;
   const july=parseInt(document.getElementById('i-july').value)||0;
   const aug=parseInt(document.getElementById('i-aug').value)||0;
 
-  // ── 平時（一般月份）──
+  // ── 平時薪資計算 ──
   const newRev=newPP*count;
   const ov=calcOver(count);
   const senData=calcSeniority(sen);
   const monthlyTotal=fixedBase+ov.bonus+senData.total+MEAL;
-  const newProfit=newRev-monthlyTotal;
   const oldRev=oldPP*count;
   const oldProfit=oldRev-oldSal;
   const salPct=monthlyTotal/newRev*100;
+
+  // ── 投保費用（依月薪查級距）──
+  const ins = lookupIns(monthlyTotal);
+  const sunkTotal = sunkCost; // 分攤成本已是整班金額
+  const totalCost = monthlyTotal + ins.company + sunkTotal;
+  const newProfit = newRev - totalCost;
+  const profitRatio = newRev > 0 ? (newProfit / newRev * 100) : 0;
 
   // ── 寒暑假真實學收（新公式：全班×平均月費 ＋ 超出預期人數×差額）──
   const expectedAttend = Math.round(count * (1 - VAC)); // 預期出席人數（全年生）
@@ -339,21 +506,27 @@ function calc(){
   const aRes=calcHol(count,aug,HOL_SUMMER_OVER);
   const hasHol=winter>0||july>0||aug>0;
 
-  let overDetail='無（15人以下）';
+  let overDetail='無（未滿18人）';
   const parts=[];
-  if(ov.t1>0) parts.push(`第16–${15+ov.t1}人：${ov.t1}人×$600`);
-  if(ov.t2>0) parts.push(`第21–${20+ov.t2}人：${ov.t2}人×$1,200`);
+  if(ov.fullBonus>0) parts.push(`第18人滿班獎金 $1,000`);
+  if(ov.t1>0) parts.push(`第19–${18+ov.t1}人：${ov.t1}人×$800`);
+  if(ov.t2>0) parts.push(`第23–${22+ov.t2}人：${ov.t2}人×$1,200`);
   if(parts.length) overDetail=parts.join(' ＋ ');
 
   // ── 平時月薪明細 ──
   document.getElementById('bd-monthly').innerHTML=`
     <div class="b-row"><span class="b-lbl">月學收（${count}人，一般月份）</span><span class="b-val">${fmt(newRev)}</span></div>
-    <div class="b-row"><span class="b-lbl">固定底薪（15人學收×33%）</span><span class="b-val c-green">${fmt(fixedBase)}</span></div>
+    <div class="b-row"><span class="b-lbl">固定底薪（18人學收×${Math.round(ratio*100)}%）</span><span class="b-val c-green">${fmt(fixedBase)}</span></div>
     <div class="b-row"><span class="b-lbl">績效獎金<small>${overDetail}</small></span><span class="b-val c-blue">${ov.bonus>0?fmt(ov.bonus):'—'}</span></div>
     <div class="b-row"><span class="b-lbl">年資獎金（${sen}年累進）<small>${senData.detail||'—'}</small></span><span class="b-val c-amber">${senData.total>0?fmt(senData.total):'—'}</span></div>
     <div class="b-row"><span class="b-lbl">餐費津貼</span><span class="b-val c-coral">${fmt(MEAL)}</span></div>
     <div class="b-row"><span class="b-lbl">薪資佔學收（一般月份）</span><span class="b-val" style="color:#666;font-weight:700;">${salPct.toFixed(1)}%</span></div>
     <div class="b-row"><span class="b-lbl">平時月薪合計</span><span class="b-val c-purple">${fmt(monthlyTotal)}</span></div>
+    <div class="b-row" style="margin-top:4px;border-top:1px solid #e0e0dc;padding-top:10px;"><span class="b-lbl">投保級距（2026）<small>投保薪資 ${fmt(ins.bracket)}｜公司負擔（勞健保＋災保＋勞退）</small></span><span class="b-val" style="color:#b71c1c;font-weight:600;">${fmt(ins.company)}</span></div>
+    ${sunkCost>0?`<div class="b-row"><span class="b-lbl">班級分攤成本<small>固定支出依科次比例分攤</small></span><span class="b-val" style="color:#b71c1c;font-weight:600;">${fmt(sunkCost)}</span></div>`:''}
+    <div class="b-row"><span class="b-lbl" style="color:#444;font-weight:600;">班級總支出</span><span class="b-val" style="color:#b71c1c;font-weight:700;">${fmt(totalCost)}</span></div>
+    <div class="b-row"><span class="b-lbl" style="color:#444;font-weight:600;">純利潤（學收−總支出）</span><span class="b-val" style="color:${newProfit>=0?'#2e7d32':'#b71c1c'};font-weight:700;">${fmt(newProfit)}</span></div>
+    <div class="b-row"><span class="b-lbl" style="color:#444;font-weight:600;">利潤比（純利潤÷學收）</span><span class="b-val" style="color:${profitRatio>=20?'#2e7d32':profitRatio>=10?'#f9a825':'#b71c1c'};font-weight:700;">${profitRatio.toFixed(1)}%</span></div>
   `;
 
   // ── 寒暑假獎金卡片（含真實學收與薪資佔比）──
@@ -433,13 +606,28 @@ function calc(){
   document.getElementById('pct-block-container').innerHTML = pctHtml;
 
   // ── 利潤比較：分一般月份 + 各假期 ──
-  function profitCompareBlock(label, newRevAmt, oldRevAmt, note){
-    const newPr=newRevAmt-monthlyTotal;
-    const oldPr=oldRevAmt-oldSal;
-    const revD=newRevAmt-oldRevAmt;
-    const salD=monthlyTotal-oldSal;
-    const prD=newPr-oldPr;
-    const prColor=prD>=0?'#2e7d32':'#b71c1c';
+  const oldIns = lookupIns(29500); // 舊制固定投保在 $29,500 級距
+
+  function profitCompareBlock(label, newRevAmt, oldRevAmt, note, studentCount){
+    const sc = sunkCost; // 班級分攤成本（已是整班金額，不乘人數）
+
+    // 新制純利潤
+    const newNetProfit = newRevAmt - monthlyTotal - ins.company - sc;
+    const newProfitRatio = newRevAmt > 0 ? (newNetProfit / newRevAmt * 100) : 0;
+
+    // 舊制純利潤（同樣扣投保與沉沒成本）
+    const oldNetProfit = oldRevAmt - oldSal - oldIns.company - sc;
+    const oldProfitRatio = oldRevAmt > 0 ? (oldNetProfit / oldRevAmt * 100) : 0;
+
+    const revD = newRevAmt - oldRevAmt;
+    const salD = monthlyTotal - oldSal;
+    const prD = newNetProfit - oldNetProfit;
+    const prColor = prD>=0 ? '#2e7d32' : '#b71c1c';
+    const newNetColor = newNetProfit>=0 ? '#2e7d32' : '#b71c1c';
+    const oldNetColor = oldNetProfit>=0 ? '#e65100' : '#b71c1c';
+    const newRatioColor = newProfitRatio>=20?'#2e7d32':newProfitRatio>=10?'#f9a825':'#b71c1c';
+    const oldRatioColor = oldProfitRatio>=20?'#2e7d32':oldProfitRatio>=10?'#e65100':'#b71c1c';
+
     return `
       <div style="margin-bottom:16px;">
         <div style="font-size:13px;font-weight:700;color:#444;margin-bottom:8px;">${label}${note?`<span style="font-size:11px;font-weight:400;color:#aaa;margin-left:6px;">${note}</span>`:''}</div>
@@ -448,27 +636,33 @@ function calc(){
             <div class="compare-title old">舊制</div>
             <div class="compare-row old"><span>月學收</span><span>${fmt(oldRevAmt)}</span></div>
             <div class="compare-row old"><span>老師薪資</span><span>${fmt(oldSal)}</span></div>
-            <div class="compare-total old"><span>補習班利潤</span><span>${fmt(oldPr)}</span></div>
+            <div class="compare-row old"><span>投保（公司負擔）</span><span style="color:#b71c1c;">−${fmt(oldIns.company)}</span></div>
+            ${sc>0?`<div class="compare-row old"><span>班級分攤成本</span><span style="color:#b71c1c;">−${fmt(sc)}</span></div>`:''}
+            <div class="compare-total old"><span>純利潤</span><span style="color:${oldNetColor};">${fmt(oldNetProfit)}</span></div>
+            <div style="font-size:12px;color:${oldRatioColor};font-weight:600;margin-top:6px;">利潤比：${oldProfitRatio.toFixed(1)}%</div>
           </div>
           <div class="compare-box new">
             <div class="compare-title new">新制</div>
             <div class="compare-row new"><span>月學收</span><span>${fmt(newRevAmt)}</span></div>
             <div class="compare-row new"><span>老師薪資</span><span>${fmt(monthlyTotal)}</span></div>
-            <div class="compare-total new"><span>補習班利潤</span><span>${fmt(newPr)}</span></div>
+            <div class="compare-row new"><span>投保（公司負擔）</span><span style="color:#b71c1c;">−${fmt(ins.company)}</span></div>
+            ${sc>0?`<div class="compare-row new"><span>班級分攤成本</span><span style="color:#b71c1c;">−${fmt(sc)}</span></div>`:''}
+            <div class="compare-total new"><span>純利潤</span><span style="color:${newNetColor};">${fmt(newNetProfit)}</span></div>
+            <div style="font-size:12px;color:${newRatioColor};font-weight:600;margin-top:6px;">利潤比：${newProfitRatio.toFixed(1)}%</div>
           </div>
         </div>
         <div class="diff-box">
           <div class="diff-row"><span class="diff-lbl">月學收增減</span>${diffFmt(revD)}</div>
           <div class="diff-row"><span class="diff-lbl">老師薪資增減</span>${diffFmt(salD)}</div>
-          <div class="diff-row"><span class="diff-lbl">補習班利潤增減</span><span style="color:${prColor};font-weight:700;">${prD>=0?'+':''}${fmt(prD)}</span></div>
+          <div class="diff-row"><span class="diff-lbl">純利潤增減</span><span style="color:${prColor};font-weight:700;">${prD>=0?'+':''}${fmt(prD)}</span></div>
         </div>
       </div>`;
   }
 
-  let profitHtml = profitCompareBlock('一般月份', newRev, oldRev);
-  if(winter>0) profitHtml += profitCompareBlock('寒假', wRealRev, wOldRev, `出席${winter}人，真實學收`);
-  if(july>0)   profitHtml += profitCompareBlock('七月', jRealRev, jOldRev, `出席${july}人，真實學收`);
-  if(aug>0)    profitHtml += profitCompareBlock('八月', aRealRev, aOldRev, `出席${aug}人，真實學收`);
+  let profitHtml = profitCompareBlock('一般月份', newRev, oldRev, '', count);
+  if(winter>0) profitHtml += profitCompareBlock('寒假', wRealRev, wOldRev, `出席${winter}人，真實學收`, winter);
+  if(july>0)   profitHtml += profitCompareBlock('七月', jRealRev, jOldRev, `出席${july}人，真實學收`, july);
+  if(aug>0)    profitHtml += profitCompareBlock('八月', aRealRev, aOldRev, `出席${aug}人，真實學收`, aug);
   document.getElementById('profit-section').innerHTML=profitHtml;
 
   document.getElementById('result').style.display='block';
